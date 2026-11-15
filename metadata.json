@@ -1,0 +1,6 @@
+{
+  "name": "Material You Launcher",
+  "description": "Android 12 / Material You home-screen emulator built with React and TypeScript.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
