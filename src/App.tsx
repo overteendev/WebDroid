@@ -25,7 +25,8 @@ import {
   type TempUnit,
 } from './utils/weather';
 
-const PREFS_KEY = 'material_you_launcher_prefs_v2';
+const PREFS_KEY = 'webdroid_prefs_v1';
+const LEGACY_PREFS_KEY = 'material_you_launcher_prefs_v2';
 
 const SCREEN_TIMEOUT_MS: Record<ScreenTimeout, number> = {
   '30s': 30000,
@@ -65,7 +66,9 @@ interface StoredPrefs {
 
 function loadPrefs(): StoredPrefs {
   try {
-    const raw = window.localStorage.getItem(PREFS_KEY);
+    const raw =
+      window.localStorage.getItem(PREFS_KEY) ??
+      window.localStorage.getItem(LEGACY_PREFS_KEY);
     if (!raw) return {};
     return JSON.parse(raw) as StoredPrefs;
   } catch {
@@ -80,8 +83,10 @@ export default function App() {
   const wallpaperRef = useRef<HTMLDivElement>(null);
   const shadeWrapperRef = useRef<HTMLDivElement>(null);
   const drawerWrapperRef = useRef<HTMLDivElement>(null);
+  const volumeHudRef = useRef<HTMLDivElement>(null);
 
   const toastTimerRef = useRef<number | null>(null);
+  const volumeHudTimerRef = useRef<number | null>(null);
   const launchTimerRef = useRef<number | null>(null);
   const buildTapCountRef = useRef<number>(0);
   const buildTapResetRef = useRef<number | null>(null);
@@ -200,6 +205,7 @@ export default function App() {
 
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
+  const [volumeHudVisible, setVolumeHudVisible] = useState(false);
 
   const [launchedApp, setLaunchedApp] = useState<AppDef | null>(null);
   const [launchOrigin, setLaunchOrigin] = useState<LaunchOrigin | null>(null);
@@ -351,8 +357,13 @@ export default function App() {
   }, [brightness]);
 
   useEffect(() => {
+    volumeHudRef.current?.style.setProperty('--vol', `${mediaVolume}%`);
+  }, [mediaVolume]);
+
+  useEffect(() => {
     return () => {
       if (toastTimerRef.current !== null) window.clearTimeout(toastTimerRef.current);
+      if (volumeHudTimerRef.current !== null) window.clearTimeout(volumeHudTimerRef.current);
       if (launchTimerRef.current !== null) window.clearTimeout(launchTimerRef.current);
       if (buildTapResetRef.current !== null) window.clearTimeout(buildTapResetRef.current);
       if (unlockTimerRef.current !== null) window.clearTimeout(unlockTimerRef.current);
@@ -480,12 +491,32 @@ export default function App() {
 
   const handlePowerButton = useCallback(() => {
     triggerHaptic('tap');
+    setVolumeHudVisible(false);
     if (sleeping) {
       wakeDevice();
     } else {
       sleepDevice();
     }
   }, [sleeping, wakeDevice, sleepDevice]);
+
+  const handleVolumeStep = useCallback(
+    (delta: number) => {
+      triggerHaptic('tick');
+      if (sleeping) {
+        wakeDevice();
+        return;
+      }
+      setMediaVolume((prev) => Math.max(0, Math.min(100, prev + delta)));
+      setVolumeHudVisible(true);
+      if (volumeHudTimerRef.current !== null) {
+        window.clearTimeout(volumeHudTimerRef.current);
+      }
+      volumeHudTimerRef.current = window.setTimeout(() => {
+        setVolumeHudVisible(false);
+      }, 1500);
+    },
+    [sleeping, wakeDevice],
+  );
 
   useEffect(() => {
     const onVisibilityChange = (): void => {
@@ -863,7 +894,11 @@ export default function App() {
   }, [activeFolder, orderedApps]);
 
   return (
-    <main className="device">
+    <main className="device" aria-label="Pixel 8 Pro device frame">
+      <div className="device-antenna device-antenna-tl" aria-hidden="true" />
+      <div className="device-antenna device-antenna-tr" aria-hidden="true" />
+      <div className="device-antenna device-antenna-bl" aria-hidden="true" />
+      <div className="device-antenna device-antenna-br" aria-hidden="true" />
       <div className="device-earpiece" aria-hidden="true" />
       <button
         type="button"
@@ -872,7 +907,23 @@ export default function App() {
         title={sleeping ? 'Wake device' : 'Power / Lock screen'}
         onClick={handlePowerButton}
       />
-      <div className="device-volume-btn" aria-hidden="true" />
+      <div className="device-volume-rocker" role="group" aria-label="Volume rocker">
+        <button
+          type="button"
+          className="device-volume-half device-volume-up"
+          aria-label="Volume up"
+          title="Volume up"
+          onClick={() => handleVolumeStep(8)}
+        />
+        <span className="device-volume-seam" aria-hidden="true" />
+        <button
+          type="button"
+          className="device-volume-half device-volume-down"
+          aria-label="Volume down"
+          title="Volume down"
+          onClick={() => handleVolumeStep(-8)}
+        />
+      </div>
       <div
         ref={screenRef}
         id="screen"
@@ -1115,7 +1166,28 @@ export default function App() {
 
         <div className="flashlight-glow" aria-hidden="true" />
         <div className="dim" aria-hidden="true" />
-        <div className="punch-hole" aria-hidden="true" />
+        <div className="punch-hole" aria-hidden="true">
+          <span className="punch-hole-lens" />
+        </div>
+
+        <div
+          ref={volumeHudRef}
+          className={`volume-hud${volumeHudVisible ? ' show' : ''}`}
+          role="status"
+          aria-live="polite"
+          aria-hidden={!volumeHudVisible}
+        >
+          <span className="volume-hud-icon" aria-hidden="true">
+            <Glyph
+              name={mediaVolume === 0 ? 'volume_off' : mediaVolume < 45 ? 'volume_down' : 'volume_up'}
+              size={18}
+            />
+          </span>
+          <div className="volume-hud-track" aria-hidden="true">
+            <div className="volume-hud-fill" />
+          </div>
+          <span className="volume-hud-val">{mediaVolume}</span>
+        </div>
 
         {!locked && !sleeping && (
           <NavBar
