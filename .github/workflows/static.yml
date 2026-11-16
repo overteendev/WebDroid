@@ -37,9 +37,12 @@ jobs:
         with:
           node-version: '22'
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm install --legacy-peer-deps --no-audit --no-fund
       - name: Build static HTML
-        run: npm run build
+        run: |
+          npm run build
+          cp dist/index.html dist/404.html
+          touch dist/.nojekyll
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
