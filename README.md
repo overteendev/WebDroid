@@ -1,14 +1,15 @@
-# Material You Launcher (Pixel 8 Pro)
+# WebDroid
 
-An interactive Android 14 / Material You launcher experience styled after the Google Pixel 8 Pro, built with React 19, TypeScript, Vite, Tailwind CSS v4, and Progressive Web App (PWA) offline support.
+An interactive Android 14 / Material You launcher experience styled after the Google Pixel 8 Pro, built with React 19, TypeScript, Vite, Tailwind CSS v4, and Progressive Web App (PWA) offline support. Designed to build cleanly into a self-contained static HTML bundle (`dist/`) for GitHub Pages (GitHub Actions or `gh-pages`) and Netlify Drop.
 
 ## Features
 
+- **Material You Dynamic Themed Icons**: App icons across the Home screen, Dock, Folders, App Drawer, Quick Shade notifications, and circular App Launch reveal automatically inherit your active wallpaper's accent color palette (including custom uploaded wallpapers), with a **Themed icons** toggle under **Settings → Wallpaper & style**.
 - **Pixel 8 Pro Hardware & UI Architecture**: Realistic device frame with centered punch-hole camera, earpiece slit, right-side Power & Volume rockers, circular adaptive app icons, 2×2 circular app folders, At a Glance weather widget, and bottom Google Search pill (`G`, Voice Mic, and Lens).
-- **Scalloped MD3 Lock Screen & Optical Fingerprint Unlock**: Always-On Display (AOD) clock and full-screen Scalloped Material Design 3 lock screen with an on-screen optical fingerprint sensor—tap the sensor to unlock directly into the home screen with a smooth reveal animation.
+- **Scalloped MD3 Lock Screen & Optical Fingerprint Unlock**: Always-On Display (AOD) clock and full-screen Scalloped Material Design 3 lock screen with an on-screen optical fingerprint sensor—tap the sensor to unlock directly into the home screen.
 - **120fps Motion & Haptic Feedback**: High-refresh-rate spring transitions, circular icon launch reveals, gesture pill navigation, and tactile vibration feedback across taps, folder expansion, and lock/unlock events.
 - **Customizable Quick Settings Shade**: Pull down from the status bar and enter Edit Mode to drag and drop Quick Settings tiles into any order (persisted locally).
-- **Offline-Ready PWA**: Pre-caches fonts, icons, and assets via `vite-plugin-pwa` and Workbox so it can be installed on mobile or desktop.
+- **Offline-Ready Static PWA**: Pre-caches fonts, icons, and assets via `vite-plugin-pwa` and Workbox so it works completely offline once installed or hosted as static HTML.
 
 ---
 
@@ -34,121 +35,76 @@ An interactive Android 14 / Material You launcher experience styled after the Go
    ```bash
    npm run lint
    ```
-4. Build the production static bundle into `dist/`:
+4. Build the static HTML production bundle into `dist/`:
    ```bash
    npm run build
    ```
-5. Preview the production build locally:
+5. Preview the production static build locally:
    ```bash
    npm run preview
    ```
 
 ---
 
-## Deploying to GitHub Pages
+## Hosting as Static HTML on GitHub Pages
 
-This project is pre-configured to work on both **project pages** (`https://<username>.github.io/<repo-name>/`) and **user/organization pages** (`https://<username>.github.io/`) thanks to:
+WebDroid is pre-configured to work on **both** GitHub Pages project URLs (`https://<username>.github.io/<repo-name>/`) and user/organization URLs (`https://<username>.github.io/`) with zero manual path rewrites:
 
-- Relative asset base (`base: process.env.VITE_BASE_PATH || './'`) in `vite.config.ts`
-- Relative PWA manifest paths (`id`, `start_url`, `scope`, and `icons`) in `vite.config.ts` and `index.html`
-- `public/.nojekyll` automatically copied into `dist/.nojekyll` on build
+- `vite.config.ts` uses `base: process.env.VITE_BASE_PATH || './'` so every generated `<script>`, `<link>`, font, and asset URL in `dist/index.html` is relative (`./assets/...`).
+- `vite-plugin-pwa` manifest fields (`id`, `start_url`, `scope`, `icons`) and `index.html` icon links use relative `./` paths.
+- `public/.nojekyll` is copied into `dist/.nojekyll` so GitHub Pages skips Jekyll processing.
 
-You can deploy using **either** the `gh-pages` npm package (Option 1) or Vite's static build process (Option 2).
+### Option 1: GitHub Actions Static HTML Build (Recommended)
 
----
+A ready-to-run workflow is included at `.github/workflows/deploy.yml`. It works with or without a `package-lock.json` (`npm install --no-audit --no-fund`), builds the static bundle (`npm run build`), copies `dist/index.html` to `dist/404.html` for SPA fallback, and publishes `dist/` directly to GitHub Pages.
 
-### Option 1: Deploy with the `gh-pages` Package
-
-`gh-pages` is already included in `devDependencies`, and `package.json` defines `"predeploy": "npm run build"` and `"deploy": "gh-pages -d dist"`.
-
-1. **Install dependencies** (if you haven't already):
-   ```bash
-   npm install
-   ```
-
-2. **Initialize Git and push your repository to GitHub** (skip if already pushed):
+1. Push your WebDroid project to the `main` branch on GitHub:
    ```bash
    git init
    git add .
-   git commit -m "Initial commit"
+   git commit -m "Initial WebDroid commit"
    git branch -M main
-   git remote add origin https://github.com/<your-username>/<your-repo-name>.git
+   git remote add origin https://github.com/<your-username>/WebDroid.git
    git push -u origin main
    ```
+2. Open your repository on GitHub and navigate to **Settings → Pages**.
+3. Under **Build and deployment → Source**, choose **GitHub Actions**.
+4. Wait ~1–2 minutes for the **Deploy WebDroid to GitHub Pages** workflow in the **Actions** tab to finish, then visit `https://<your-username>.github.io/WebDroid/` (or trigger it anytime via **Actions → Run workflow**).
 
-3. **Build and publish `dist/` to the `gh-pages` branch**:
+### Option 2: Deploy with the `gh-pages` Package
+
+`gh-pages` is already included in `devDependencies`, and `package.json` defines `"predeploy": "npm run build"` and `"deploy": "gh-pages -d dist"`.
+
+1. Install dependencies (if not already installed):
+   ```bash
+   npm install
+   ```
+2. Push your code to GitHub (if not already pushed).
+3. Build and publish `dist/` to the `gh-pages` branch:
    ```bash
    npm run deploy
    ```
-   - `npm run deploy` automatically executes `predeploy` (`npm run build`), builds the static production assets into `dist/`, and pushes the contents of `dist/` to the `gh-pages` branch on GitHub.
-   - *(Optional)* If you prefer an explicit subpath instead of the default `./` relative base, run:
-     ```bash
-     VITE_BASE_PATH=/<your-repo-name>/ npm run deploy
-     ```
+   *(Optional: pass an explicit subpath with `VITE_BASE_PATH=/WebDroid/ npm run deploy`.)*
+4. On GitHub, go to **Settings → Pages → Build and deployment**, set **Source** to **Deploy from a branch**, select **`gh-pages`** and **`/ (root)`**, and click **Save**.
 
-4. **Enable GitHub Pages in your repository settings**:
-   - Open your repository on GitHub and go to **Settings → Pages**.
-   - Under **Build and deployment → Source**, select **Deploy from a branch**.
-   - Under **Branch**, select **`gh-pages`** and **`/ (root)`**, then click **Save**.
-   - Wait ~1–2 minutes and open `https://<your-username>.github.io/<your-repo-name>/`.
+### Option 3: Manual Vite Static Build (`dist/`)
 
----
-
-### Option 2: Deploy Using Vite's Static Build Process
-
-#### 2A. Automated Build & Deploy via GitHub Actions (Recommended for GitHub)
-
-A ready-to-use workflow is included at `.github/workflows/deploy.yml`.
-
-1. Push your project to the `main` branch on GitHub:
-   ```bash
-   git add .
-   git commit -m "Configure GitHub Pages deployment"
-   git push -u origin main
-   ```
-2. On GitHub, go to **Settings → Pages**.
-3. Under **Build and deployment → Source**, choose **GitHub Actions**.
-4. Every push to `main` (or manual trigger in the **Actions** tab via **Run workflow**) runs `npm ci` and `npm run build` (`vite build`), uploads the `dist/` artifact, and publishes it to GitHub Pages.
-
-#### 2B. Manual Vite Static Build & Branch Push
-
-If you want to generate Vite's static bundle manually without using `gh-pages` or GitHub Actions:
-
-1. Run Vite's production build:
+1. Generate the static HTML bundle:
    ```bash
    npm run build
    ```
-   *(Optional: pass `VITE_BASE_PATH=/<your-repo-name>/ npm run build` if hosting at a fixed subpath.)*
-
-2. Confirm `dist/` contains `index.html`, `assets/`, `manifest.webmanifest`, `sw.js`, and `.nojekyll`.
-
-3. Push `dist/` directly to a `gh-pages` branch using Git:
+2. Push or upload the contents of `dist/` (making sure `.nojekyll` is included) to your `gh-pages` branch or any static HTML host:
    ```bash
    git add -f dist
-   git commit -m "Build static dist for GitHub Pages"
+   git commit -m "Build static HTML bundle"
    git subtree push --prefix dist origin gh-pages
    ```
-   *(Alternatively, upload the contents of `dist/` to your static host or an orphan `gh-pages` branch.)*
-
-4. In GitHub **Settings → Pages**, set **Source** to **Deploy from a branch**, select **`gh-pages`** and **`/ (root)`**, and click **Save**.
 
 ---
 
 ## Deploying to Netlify
 
-The build remains fully compatible with both **Netlify Drop** and **Netlify Git integration**:
+WebDroid remains compatible with both **Netlify Drop** and **Netlify Git**:
 
-- **Netlify Drop (No CLI required)**:
-  1. Run `npm run build`.
-  2. Open [Netlify Drop](https://app.netlify.com/drop).
-  3. Drag and drop the generated **`dist/`** folder onto the page (`public/_redirects` is automatically copied to `dist/_redirects`).
-- **Netlify + GitHub**:
-  1. Connect your GitHub repository in Netlify.
-  2. `netlify.toml` automatically sets the build command (`npm run build`), publish directory (`dist`), and SPA redirect rules.
-
----
-
-## Troubleshooting
-
-- **Blank page or missing icons/JS on a `<repo-name>` subpath**: Make sure you ran `npm run build` / `npm run deploy` after pulling the `vite.config.ts` (`base: './'`) and `index.html` (`./`) updates, and verify `dist/.nojekyll` is present in the deployed output.
-- **PWA installation & vibration haptics**: Service workers and `navigator.vibrate` require a secure context (`https://`), which GitHub Pages (`*.github.io`) and Netlify provide automatically. Clear site data or unregister older service workers in DevTools (**Application → Service Workers**) if testing across both root and subpath URLs on the same origin.
+- **Netlify Drop**: Run `npm run build`, open [Netlify Drop](https://app.netlify.com/drop), and drag and drop the `dist/` folder (`public/_redirects` is automatically copied into `dist/_redirects`).
+- **Netlify + GitHub**: Connect your GitHub repository in Netlify; `netlify.toml` configures `npm run build`, publish directory `dist`, and SPA redirects automatically.

@@ -36,6 +36,7 @@ const SCREEN_TIMEOUT_MS: Record<ScreenTimeout, number> = {
 
 interface StoredPrefs {
   mode?: ThemeMode;
+  themedIcons?: boolean;
   wallpaperIndex?: number;
   customWallpaperUrl?: string | null;
   customWallpaperHue?: number | null;
@@ -92,6 +93,9 @@ export default function App() {
     () =>
       initialPrefs.mode ??
       (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'),
+  );
+  const [themedIcons, setThemedIcons] = useState<boolean>(
+    () => initialPrefs.themedIcons ?? true,
   );
   const [wallpaperIndex, setWallpaperIndex] = useState<number>(
     () => initialPrefs.wallpaperIndex ?? 0,
@@ -221,6 +225,7 @@ export default function App() {
   useEffect(() => {
     const payload: StoredPrefs = {
       mode,
+      themedIcons,
       wallpaperIndex,
       customWallpaperUrl,
       customWallpaperHue,
@@ -260,6 +265,7 @@ export default function App() {
     }
   }, [
     mode,
+    themedIcons,
     wallpaperIndex,
     customWallpaperUrl,
     customWallpaperHue,
@@ -870,7 +876,7 @@ export default function App() {
       <div
         ref={screenRef}
         id="screen"
-        className={`screen${hasOverlay ? ' has-overlay' : ''}${drawerOpen ? ' drawer-active' : ''}${
+        className={`screen${themedIcons ? ' themed-icons' : ''}${hasOverlay ? ' has-overlay' : ''}${drawerOpen ? ' drawer-active' : ''}${
           flashlightOn ? ' flashlight-on' : ''
         }${locked && !sleeping ? ' is-locked' : ''}${justUnlocked ? ' just-unlocked' : ''}`}
         onContextMenu={(event) => {
@@ -983,6 +989,7 @@ export default function App() {
         <SettingsView
           open={settingsOpen}
           mode={mode}
+          themedIcons={themedIcons}
           wallpapers={wallpapers}
           wallpaperIndex={wallpaperIndex}
           customWallpaperUrl={customWallpaperUrl}
@@ -1012,6 +1019,7 @@ export default function App() {
             setSettingsOpen(false);
           }}
           onModeChange={setMode}
+          onThemedIconsChange={setThemedIcons}
           onWallpaperChange={handleWallpaperChange}
           onCustomWallpaperSelect={handleCustomWallpaperSelect}
           onClearCustomWallpaper={handleClearCustomWallpaper}

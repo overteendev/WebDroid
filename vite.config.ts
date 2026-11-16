@@ -15,9 +15,9 @@ export default defineConfig(() => {
         includeAssets: ['icon.svg', 'apple-touch-icon.png', 'pwa-192x192.png', 'pwa-512x512.png', 'pwa-maskable-512x512.png'],
         manifest: {
           id: './',
-          name: 'Material You Launcher',
-          short_name: 'MY Launcher',
-          description: 'Android Material You home-screen launcher with MD3 clock, weather, folders, and gesture navigation.',
+          name: 'WebDroid',
+          short_name: 'WebDroid',
+          description: 'WebDroid — Material You Android launcher with MD3 clock, themed icons, weather, and gesture navigation.',
           theme_color: '#0b0b12',
           background_color: '#08080c',
           display: 'standalone',

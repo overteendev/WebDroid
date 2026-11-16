@@ -12,6 +12,7 @@ export type ScreenTimeout = '30s' | '1m' | '2m' | '5m';
 export interface SettingsViewProps {
   open: boolean;
   mode: ThemeMode;
+  themedIcons: boolean;
   wallpapers: WallpaperPack[];
   wallpaperIndex: number;
   customWallpaperUrl: string | null;
@@ -38,6 +39,7 @@ export interface SettingsViewProps {
   installedAppsCount: number;
   onClose: () => void;
   onModeChange: (mode: ThemeMode) => void;
+  onThemedIconsChange: (enabled: boolean) => void;
   onWallpaperChange: (index: number) => void;
   onCustomWallpaperSelect: (file: File) => void;
   onClearCustomWallpaper: () => void;
@@ -74,6 +76,7 @@ const SENSITIVITY_OPTIONS: { id: BackSensitivity; label: string }[] = [
 export function SettingsView({
   open,
   mode,
+  themedIcons,
   wallpapers,
   wallpaperIndex,
   customWallpaperUrl,
@@ -100,6 +103,7 @@ export function SettingsView({
   installedAppsCount,
   onClose,
   onModeChange,
+  onThemedIconsChange,
   onWallpaperChange,
   onCustomWallpaperSelect,
   onClearCustomWallpaper,
@@ -155,7 +159,7 @@ export function SettingsView({
       normalizedQuery === '' || text.toLowerCase().includes(normalizedQuery);
     return {
       pwa: has('install pwa web app home screen'),
-      wallpaper: has('wallpaper style image photo theme dark palette color'),
+      wallpaper: has('wallpaper style image photo theme dark palette color themed icons material you accent'),
       network: has('network internet wifi wi-fi airplane mobile 5g'),
       devices: has('connected devices bluetooth earbuds pixel watch'),
       apps: has('apps launcher foldered grid order reset restore uninstalled'),
@@ -164,7 +168,7 @@ export function SettingsView({
       display: has('display brightness rotation lock screen timeout weather celsius fahrenheit'),
       sound: has('sound vibration haptics media volume ring'),
       gestures: has('system gestures navigation back sensitivity lockscreen wake lock fingerprint security'),
-      about: has('about phone device name tensor ram storage android version security patch kernel ip build number developer'),
+      about: has('about phone device name webdroid tensor ram storage android version security patch kernel ip build number developer'),
     };
   }, [normalizedQuery]);
 
@@ -321,6 +325,30 @@ export function SettingsView({
                     <span className="settings-row-title">Dark theme</span>
                   </span>
                   <span className={`md3-switch${mode === 'dark' ? ' on' : ''}`} aria-hidden="true">
+                    <span className="md3-switch-thumb" />
+                  </span>
+                </button>
+
+                <div className="settings-divider" />
+
+                <button
+                  type="button"
+                  className="settings-toggle-row"
+                  role="switch"
+                  aria-checked={themedIcons}
+                  onClick={() => {
+                    triggerHaptic('tap');
+                    onThemedIconsChange(!themedIcons);
+                  }}
+                >
+                  <span className="settings-row-icon">
+                    <Glyph name="palette" size={18} filled={themedIcons} />
+                  </span>
+                  <span className="settings-row-text">
+                    <span className="settings-row-title">Themed icons</span>
+                    <span className="settings-row-sub">Match wallpaper accent color</span>
+                  </span>
+                  <span className={`md3-switch${themedIcons ? ' on' : ''}`} aria-hidden="true">
                     <span className="md3-switch-thumb" />
                   </span>
                 </button>
@@ -916,6 +944,10 @@ export function SettingsView({
                 <div className="settings-row">
                   <span className="settings-row-label">Storage</span>
                   <span className="settings-row-value tabular">84.2 / 256 GB</span>
+                </div>
+                <div className="settings-row">
+                  <span className="settings-row-label">Launcher</span>
+                  <span className="settings-row-value">WebDroid</span>
                 </div>
                 <div className="settings-row">
                   <span className="settings-row-label">Android version</span>
